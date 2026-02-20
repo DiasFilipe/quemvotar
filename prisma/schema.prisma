@@ -55,6 +55,8 @@ model User {
   sessions               Session[]
   consents               Consent[]
   consentLogs            ConsentLog[]
+  userAnswers            UserAnswer[]
+  scores                 Score[]
   candidates             Candidate[]   @relation("UserCandidates")
   moderationLogs         ModerationLog[] @relation("AdminModeration")
 }
@@ -67,7 +69,7 @@ model Session {
   expiresAt DateTime
   revokedAt DateTime?
 
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -81,7 +83,7 @@ model Consent {
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
 
-  user       User        @relation(fields: [userId], references: [id])
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, type])
   @@index([userId, type])
@@ -96,7 +98,7 @@ model ConsentLog {
   userAgent String?
   createdAt DateTime      @default(now())
 
-  user      User          @relation(fields: [userId], references: [id])
+  user      User          @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([userId, type])
 }
@@ -106,6 +108,8 @@ model Question {
   theme     String
   text      String
   sortOrder Int
+
+  answers   UserAnswer[]
 }
 
 model UserAnswer {
@@ -115,11 +119,12 @@ model UserAnswer {
   value      Int
   createdAt  DateTime @default(now())
 
-  user       User     @relation(fields: [userId], references: [id])
-  question   Question @relation(fields: [questionId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([userId, questionId])
   @@index([userId])
+  @@index([questionId])
 }
 
 model Candidate {
@@ -136,7 +141,7 @@ model Candidate {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
-  user               User?              @relation("UserCandidates", fields: [userId], references: [id])
+  user               User?              @relation("UserCandidates", fields: [userId], references: [id], onDelete: SetNull)
   profile            CandidateProfile?
   answers            CandidateAnswer[]
   adminScores        AdminScore[]
@@ -145,6 +150,7 @@ model Candidate {
   moderationLogs     ModerationLog[]
 
   @@index([cargo, uf])
+  @@index([statusVerificacao])
 }
 
 model CandidateProfile {
@@ -155,7 +161,7 @@ model CandidateProfile {
   links       Json?
   updatedAt   DateTime @updatedAt
 
-  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 }
 
 model CandidateAnswer {
@@ -166,7 +172,7 @@ model CandidateAnswer {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   @@unique([candidateId, theme])
 }
@@ -179,7 +185,7 @@ model AdminScore {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   @@unique([candidateId, theme])
 }
@@ -193,7 +199,7 @@ model Verification {
   verifiedAt  DateTime?
   createdAt   DateTime           @default(now())
 
-  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 }
 
 model Score {
@@ -204,10 +210,11 @@ model Score {
   motivos     Json?
   generatedAt DateTime @default(now())
 
-  user        User     @relation(fields: [userId], references: [id])
-  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([candidateId])
 }
 
 model ModerationLog {
@@ -218,8 +225,9 @@ model ModerationLog {
   adminId     String?
   createdAt   DateTime @default(now())
 
-  candidate   Candidate @relation(fields: [candidateId], references: [id])
-  admin       User?     @relation("AdminModeration", fields: [adminId], references: [id])
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Restrict)
+  admin       User?     @relation("AdminModeration", fields: [adminId], references: [id], onDelete: SetNull)
 
   @@index([candidateId])
+  @@index([adminId])
 }
