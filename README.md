@@ -37,6 +37,7 @@ SaaS B2C para mostrar compatibilidade entre eleitor e candidatos, sem pedir voto
 6. `COMPLIANCE.md` regras de LGPD e eleitoral.
 7. `SEEDING.md` como popular dados iniciais.
 8. `DATA_MODEL.md` modelo de dados minimo.
+9. `RAILWAY.md` setup de Postgres, Redis e Volume.
 
 **Seed rapido**
 ```powershell

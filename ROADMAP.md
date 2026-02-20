@@ -8,6 +8,7 @@
 5. Script de seeds com Top 100 por cargo criado.
 6. Projeto web e API inicial criado.
 7. Autenticacao e consentimento base implementados.
+8. Modelos e migracoes implementados.
 
 **Fase 0 - Fundacoes**
 1. [x] Confirmar stack e infraestrutura (Railway).
@@ -17,9 +18,9 @@
 
 **Fase 1 - Base Tecnica**
 1. [x] Criar projeto web e API.
-2. [ ] Configurar Postgres, Redis e Railway Volume.
+2. [x] Configurar Postgres, Redis e Railway Volume.
 3. [x] Implementar autenticacao e consentimento.
-4. [ ] Implementar modelos e migracoes.
+4. [x] Implementar modelos e migracoes.
 
 **Fase 2 - Core B2C**
 1. [ ] Onboarding com UF, cidade e zona quando existir.
