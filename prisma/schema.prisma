@@ -1,0 +1,225 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  CANDIDATE
+  ADMIN
+  MODERATOR
+}
+
+enum ConsentType {
+  POLITICAL_OPINION
+}
+
+enum ConsentAction {
+  ACCEPT
+  REVOKE
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum Office {
+  PRESIDENTE
+  GOVERNADOR
+  SENADOR
+  DEPUTADO_FEDERAL
+  DEPUTADO_ESTADUAL
+  DEPUTADO_DISTRITAL
+}
+
+model User {
+  id                     String        @id @default(uuid())
+  email                  String        @unique
+  passwordHash           String
+  role                   Role          @default(USER)
+  uf                     String?
+  cidade                 String?
+  zona                   String?
+  ideologiaAutoDeclarada String?
+  pesosTemas             Json?
+  consentAcceptedAt      DateTime?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+
+  sessions               Session[]
+  consents               Consent[]
+  consentLogs            ConsentLog[]
+  candidates             Candidate[]   @relation("UserCandidates")
+  moderationLogs         ModerationLog[] @relation("AdminModeration")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model Consent {
+  id         String      @id @default(uuid())
+  userId     String
+  type       ConsentType
+  acceptedAt DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id])
+
+  @@unique([userId, type])
+  @@index([userId, type])
+}
+
+model ConsentLog {
+  id        String        @id @default(uuid())
+  userId    String
+  type      ConsentType
+  action    ConsentAction
+  ip        String?
+  userAgent String?
+  createdAt DateTime      @default(now())
+
+  user      User          @relation(fields: [userId], references: [id])
+
+  @@index([userId, type])
+}
+
+model Question {
+  id        String   @id
+  theme     String
+  text      String
+  sortOrder Int
+}
+
+model UserAnswer {
+  id         String   @id @default(uuid())
+  userId     String
+  questionId String
+  value      Int
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@unique([userId, questionId])
+  @@index([userId])
+}
+
+model Candidate {
+  id                 String             @id @default(uuid())
+  userId             String?
+  nomeUrna           String
+  nomeCompleto       String?
+  partido            String?
+  cargo              Office
+  uf                 String?
+  numero             String?
+  zona               String?
+  statusVerificacao  VerificationStatus @default(PENDING)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  user               User?              @relation("UserCandidates", fields: [userId], references: [id])
+  profile            CandidateProfile?
+  answers            CandidateAnswer[]
+  adminScores        AdminScore[]
+  verification       Verification?
+  scores             Score[]
+  moderationLogs     ModerationLog[]
+
+  @@index([cargo, uf])
+}
+
+model CandidateProfile {
+  id          String   @id @default(uuid())
+  candidateId String   @unique
+  bio         String?
+  causas      Json?
+  links       Json?
+  updatedAt   DateTime @updatedAt
+
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+}
+
+model CandidateAnswer {
+  id          String   @id @default(uuid())
+  candidateId String
+  theme       String
+  value       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+
+  @@unique([candidateId, theme])
+}
+
+model AdminScore {
+  id          String   @id @default(uuid())
+  candidateId String
+  theme       String
+  value       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+
+  @@unique([candidateId, theme])
+}
+
+model Verification {
+  id          String             @id @default(uuid())
+  candidateId String             @unique
+  status      VerificationStatus @default(PENDING)
+  docHash     String?
+  selfieHash  String?
+  verifiedAt  DateTime?
+  createdAt   DateTime           @default(now())
+
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+}
+
+model Score {
+  id          String   @id @default(uuid())
+  userId      String
+  candidateId String
+  score       Int
+  motivos     Json?
+  generatedAt DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+
+  @@index([userId])
+}
+
+model ModerationLog {
+  id          String   @id @default(uuid())
+  candidateId String
+  action      String
+  reason      String?
+  adminId     String?
+  createdAt   DateTime @default(now())
+
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  admin       User?     @relation("AdminModeration", fields: [adminId], references: [id])
+
+  @@index([candidateId])
+}

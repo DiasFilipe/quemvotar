@@ -1,0 +1,14 @@
+{
+  "PARTY_ACRONYM": {
+    "economia_impostos": 3,
+    "emprego_desenvolvimento": 3,
+    "seguranca_publica": 3,
+    "saude": 3,
+    "educacao": 3,
+    "infra_mobilidade": 3,
+    "meio_ambiente_energia": 3,
+    "protecao_social": 3,
+    "liberdades_valores": 3,
+    "governanca_corrupcao": 3
+  }
+}
